@@ -22,35 +22,38 @@ Or install it yourself as:
 ## Usage command line
 
 If you just need to dumo the password after gem installation, just type:
-`
+```
 remmina-dump
-`
+```
 
 ## Usage in Ruby
 
 
 Basic decryption example:
-`
+
+```ruby
 require "remmina"
 
 secretstr='FeIQ1I6+cs5dpS2yvHruae3KKiE8YXKMBs2yFiN0Yjg='
 pass=Remmina::Password.new('secret'=>secretstr)
 enchash=pass.encrypt_password('test')
 puts enchash
-`
+```
 
 Basic encryption example:
-`
+
+```ruby
 require "remmina"
 
 secretstr='FeIQ1I6+cs5dpS2yvHruae3KKiE8YXKMBs2yFiN0Yjg='
 pass=Remmina::Password.new('secret'=>secretstr)
 plain=pass.decrypt_password('kl7zf+xc7g4=')
 puts plain
-`
+```
 
 Basic decryption example (reading secret from default configuration location):
-`
+
+```ruby
 require "remmina"
 
 config=Remmina::Config.new
@@ -60,7 +63,7 @@ pass=Remmina::Password.new('secret'=>secretstr)
 encrypted="kl7zf+xc7g4="
 plain = pass.decrypt_password(encrypted)
 puts plain
-`
+```
 
 ## Development
 
