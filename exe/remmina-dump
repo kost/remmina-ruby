@@ -1,0 +1,96 @@
+#!/usr/bin/env ruby
+
+require 'bundler/setup'
+require 'remmina'
+require 'optparse'
+
+config=Remmina::Config.new
+
+$PRGNAME='remmina-dump'
+$options={}
+$options['preferences']=config.deflocation
+
+OptionParser.new do |opts|
+	opts.banner = "Usage: #{$PRGNAME} [options]"
+
+	opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
+		$options['verbose'] = v
+	end
+
+	opts.on("-d", "--[no-]debug", "Run in debug mode") do |v|
+		$options['debug'] = v
+	end
+
+	opts.on("-c", "--config DIR", "specify config DIR location of Remmina") do |optarg|
+		$options['config'] = optarg
+	end
+
+	opts.on("-r", "--pref FILE", "use different preferences FILE") do |optarg|
+		$options['preferences'] = optarg
+	end
+
+	opts.on("-f", "--file FILE", "decrypt from following file") do |optarg|
+		$options['file'] = optarg
+	end
+
+	opts.on("-s", "--secret SECRET", "use SECRET as global secret") do |optarg|
+		$options['secret'] = optarg
+	end
+
+	opts.on("-p", "--password ENCPASS", "use ENCPASS as encrypted password") do |optarg|
+		$options['password'] = optarg
+	end
+
+	opts.on("-h", "--help", "Prints this help") do
+		puts opts
+		exit
+	end
+
+	opts.separator ""
+	opts.separator "Example #1: #{$PRGNAME}"
+	opts.separator "Example #2: #{$PRGNAME} -s FeIQ1I6+cs5dpS2yvHruae3KKiE8YXKMBs2yFiN0Yjg= -p kl7zf+xc7g4="
+end.parse!
+
+
+unless $options['config'] then
+	$options['config'] = config.confdir
+end	
+
+unless $options['preferences'] then
+	$options['preferences']=$options['config'] + "/" + config.preffile
+end
+
+unless $options['secret'] then
+	$options['secret']=config.readsecret($options['preferences'])
+end
+
+pass=Remmina::Password.new('secret'=>$options['secret'])
+
+def decrypt(config,pass,file)
+	conn=config.loadini(file)	
+	password=''
+	encrypted=conn['remmina']['password']
+	unless encrypted == '' then
+		password = pass.decrypt_password(encrypted)
+	end
+	printf "%-16s %-15s %-20s %s\n",conn['remmina']['server'],conn['remmina']['domain'],conn['remmina']['username'],password
+		
+end
+
+if $options['password'] then
+	password = pass.decrypt_password($options['password'])
+	puts password
+	exit 0
+end
+
+if $options['file'] then
+	decrypt(config,pass,$options['file'])
+	exit 0 
+end
+
+
+Dir.glob($options['config']+'/[0-9]*.remmina') do |file|
+	# puts file
+	decrypt(config,pass,file)
+end
+
